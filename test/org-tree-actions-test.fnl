@@ -1,6 +1,7 @@
+(require :org-tree-actions)
 (fn asserteq [actual expected message]
   (when (not (= actual expected))
-    (print "FAIL" (string.format "%s: %s, %s" message expected actual))))
+    (print "FAIL" (string.format "%s: %s, %s" message (vim.inspect expected) (vim.inspect actual)))))
 (fn setl [lines]
   (vim.api.nvim_buf_set_lines 0 0 -1 false lines))
 (fn getl []
@@ -41,3 +42,12 @@
 (asserteq (. (getl) 1) "* WONT-DO test" "Keyword: Moves to the next keyword")
 (vim.cmd "norm cit")
 (asserteq (. (getl) 1) "* test" "Keyword: Removes the keyword cleanly")
+
+;; Logbook Test
+(local config (require :orgmode.config))
+(tset config :todo_keywords :ALL [:TODO :DONE])
+(setl ["* TODO test"])
+(vim.cmd "norm cit")
+(local timestamp (vim.fn.strftime "%Y-%m-%d %a %H:%M"))
+(asserteq (. (getl) 1) "* DONE test" "org-log-done")
+(asserteq (. (getl) 2) (string.format "CLOSED: [%s]" timestamp) "org-log-done")

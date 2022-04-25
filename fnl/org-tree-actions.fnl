@@ -78,8 +78,16 @@
                              (priority_state:prompt_user))]
           (set-priority headline new_priority))))
 
+(fn org-log-done [headline]
+  (let [(startrow _ endrow _) (headline:range)
+        text [(vim.treesitter.query.get_node_text headline 0)
+              (string.format "CLOSED: [%s]"
+                             (vim.fn.strftime "%Y-%m-%d %a %H:%M"))]]
+    (vim.api.nvim_buf_set_lines 0 startrow endrow false text)))
+
 (tset OrgMappings :_change_todo_state
       (fn [_ direction use_fast_access]
+        (local config (require :orgmode.config))
         (let [TodoState (require :orgmode.objects.todo_state)
               headline (org-closest-headline)
               keyword (get-todo headline)
@@ -91,7 +99,10 @@
                            (= direction :prev) (todo_state:get_prev)
                            (= direction :reset) (todo_state:get_todo)
                            false)]
-          (set-todo headline (. new_state :value)))))
+          (set-todo headline (. new_state :value))
+          (when config.org_log_done
+            (org-log-done headline)))))
+
 (tset OrgMappings :_todo_change_state
       (fn [self direction]
         (self:_change_todo_state direction true)))
