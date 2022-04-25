@@ -36,7 +36,7 @@
   (let [config (require :orgmode.config)
         keywords config.todo_keywords.ALL]
     (-> (icollect [_ word (ipairs keywords)]
-              (let [todo (parse-item headline word)]
+              (let [todo (parse-item headline (string.gsub word "-" "%%-"))]
                 (when todo
                   todo)))
         (. 1))))

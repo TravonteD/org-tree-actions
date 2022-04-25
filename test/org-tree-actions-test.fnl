@@ -31,13 +31,13 @@
 
 ;; Keyword Swap Test
 (local config (require :orgmode.config))
-(tset config :todo_keywords :ALL [:TODO :STARTED :DONE])
+(tset config :todo_keywords :ALL [:TODO :STARTED :WONT-DO])
 (setl ["* test"])
 (vim.cmd "norm cit")
 (asserteq (. (getl) 1) "* TODO test" "Keyword: adds a keyword from nothing")
 (vim.cmd "norm cit")
 (asserteq (. (getl) 1) "* STARTED test" "Keyword: Moves to the next keyword")
 (vim.cmd "norm cit")
-(asserteq (. (getl) 1) "* DONE test" "Keyword: Moves to the next keyword")
+(asserteq (. (getl) 1) "* WONT-DO test" "Keyword: Moves to the next keyword")
 (vim.cmd "norm cit")
 (asserteq (. (getl) 1) "* test" "Keyword: Removes the keyword cleanly")
