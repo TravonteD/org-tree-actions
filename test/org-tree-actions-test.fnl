@@ -51,3 +51,17 @@
 (local timestamp (vim.fn.strftime "%Y-%m-%d %a %H:%M"))
 (asserteq (. (getl) 1) "* DONE test" "org-log-done")
 (asserteq (. (getl) 2) (string.format "CLOSED: [%s]" timestamp) "org-log-done")
+
+;; Promotions Test
+(setl ["* test"])
+(vim.cmd "norm >>")
+(asserteq (. (getl) 1) "** test" "Demoting a single headline")
+(vim.cmd "norm <<")
+(asserteq (. (getl) 1) "* test" "Promoting a single headline")
+(setl ["* test" "** subtest"])
+(vim.cmd "norm >s")
+(asserteq (. (getl) 1) "** test" "Demoting a whole subtree")
+(asserteq (. (getl) 2) "*** subtest" "Demoting a whole subtree")
+(vim.cmd "norm <s")
+(asserteq (. (getl) 1) "* test" "Promoting a whole subtree")
+(asserteq (. (getl) 2) "** subtest" "Promoting a whole subtree")

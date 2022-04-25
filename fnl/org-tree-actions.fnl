@@ -45,6 +45,37 @@
       (: :field :stars)
       (. 1)))
 
+(fn set-stars [headline number]
+  (let [stars (get-stars headline)
+        (sr sc er ec) (stars:range)]
+    (vim.api.nvim_buf_set_text 0 sr sc er ec [(string.rep "*" number)])))
+
+(fn demote-headline [headline]
+        (let [stars (get-stars headline)
+              text (vim.treesitter.query.get_node_text stars 0)]
+          (set-stars headline (+ (length text) 1))))
+
+(fn promote-headline [headline]
+        (let [stars (get-stars headline)
+              text (vim.treesitter.query.get_node_text stars 0)]
+          (set-stars headline (if (= (length text) 1) text (- (length text) 1)))))
+
+(fn promote-subtree [section]
+  (let [subsections (vim.tbl_filter
+                      (fn [node] (= (node:type) :section))
+                      (ts_utils.get_named_children section))]
+    (each [_ sec (ipairs subsections)]
+      (promote-headline (find-headline sec))
+      (promote-subtree sec))))
+
+(fn demote-subtree [section]
+  (let [subsections (vim.tbl_filter
+                      (fn [node] (= (node:type) :section))
+                      (ts_utils.get_named_children section))]
+    (each [_ sec (ipairs subsections)]
+      (demote-headline (find-headline sec))
+      (demote-subtree sec))))
+
 (fn set-priority [headline priority]
   (let [current-priority (get-priority headline)]
     (if current-priority
@@ -65,6 +96,13 @@
             text (vim.treesitter.query.get_node_text stars 0)]
         (set-text stars (string.format "%s %s" text keyword))))))
 
+(fn org-log-done [headline]
+  (let [(startrow _ endrow _) (headline:range)
+        text [(vim.treesitter.query.get_node_text headline 0)
+              (string.format "CLOSED: [%s]"
+                             (vim.fn.strftime "%Y-%m-%d %a %H:%M"))]]
+    (vim.api.nvim_buf_set_lines 0 startrow endrow false text)))
+
 (tset OrgMappings :set_priority
       (fn [_ direction]
         (let [PriorityState (require :orgmode.objects.priority_state)
@@ -78,12 +116,7 @@
                              (priority_state:prompt_user))]
           (set-priority headline new_priority))))
 
-(fn org-log-done [headline]
-  (let [(startrow _ endrow _) (headline:range)
-        text [(vim.treesitter.query.get_node_text headline 0)
-              (string.format "CLOSED: [%s]"
-                             (vim.fn.strftime "%Y-%m-%d %a %H:%M"))]]
-    (vim.api.nvim_buf_set_lines 0 startrow endrow false text)))
+
 
 (tset OrgMappings :_change_todo_state
       (fn [_ direction use_fast_access]
@@ -106,3 +139,16 @@
 (tset OrgMappings :_todo_change_state
       (fn [self direction]
         (self:_change_todo_state direction true)))
+
+(tset OrgMappings :do_demote
+      (fn [_ whole_subtree]
+        (local headline (org-closest-headline))
+        (demote-headline headline)
+        (when whole_subtree
+          (demote-subtree (headline:parent)))))
+(tset OrgMappings :do_promote
+      (fn [_ whole_subtree]
+        (local headline (org-closest-headline))
+        (promote-headline headline)
+        (when whole_subtree
+          (promote-subtree (headline:parent)))))

@@ -19,5 +19,6 @@ require('org-tree-actions')
 - [X] Priority Toggling
 - [X] TODO State Toggleing
 - [X] org-log-done
+- [X] headline promotion (including subtrees)
 - [ ] schedule/deadline modifications
 - [ ] Property drawer modifications
