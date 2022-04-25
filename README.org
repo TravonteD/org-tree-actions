@@ -1,0 +1,23 @@
+* org-tree-actions
+A proof of concept where org buffer modifications are done in a treesitter centric way
+
+** Usage
+Run `make` to build and test (config should be agnostic)
+```
+make
+```
+
+This repo isn't really meant to be used in a real config. To test add it to your `runtimepath` and `require` it
+
+```lua
+vim.opt.runtimepath += <path-to-repo>
+require('org-tree-actions')
+```
+
+
+** Supported actions
+- [X] Priority Toggling
+- [X] TODO State Toggleing
+- [X] org-log-done
+- [ ] schedule/deadline modifications
+- [ ] Property drawer modifications
